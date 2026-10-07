@@ -20,6 +20,16 @@ ENTITY_CONFIG = {
 def row_dict(row):
     return dict(row)
 
+TEXT_FIELDS = ("name", "title")
+
+
+def has_blank_text(data):
+    for field in TEXT_FIELDS:
+        if field in data:
+            value = data[field]
+            if not isinstance(value, str) or not value.strip():
+                return True
+    return False
 
 def register_crud(app, table, fields):
     route = f"/{table}"
@@ -30,7 +40,8 @@ def register_crud(app, table, fields):
 
         if any(field not in data for field in fields):
             return jsonify({"error": "Missing required field"}), 400
-
+        if has_blank_text(data):
+            return jsonify({"error": "Text fields must not be empty"}), 400
         values = [data[field] for field in fields]
         placeholders = ",".join("?" for _ in fields)
 
@@ -100,7 +111,8 @@ def register_crud(app, table, fields):
 
         if any(field not in data for field in fields):
             return jsonify({"error": "Missing required field"}), 400
-
+        if has_blank_text(data):
+            return jsonify({"error": "Text fields must not be empty"}), 400
         assignments = ",".join(
             f"{field} = ?" for field in fields
         )
